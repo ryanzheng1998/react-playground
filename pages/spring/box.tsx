@@ -1,9 +1,46 @@
 import React from 'react'
-import { isOnRest } from '../../lib/animated-number/isOnRest'
+import styled from 'styled-components'
 import { spring } from '../../lib/animated-number/spring'
 import { stepper } from '../../lib/animated-number/stepper'
 import { AnimatedNumber } from '../../lib/animated-number/types'
 import { useAnimation } from '../../lib/sideEffect/useAnimation'
+
+const Container = styled.div`
+  display: grid;
+  justify-content: center;
+  align-items: center;
+
+  height: 80vh;
+  width: 100%;
+`
+
+const Box = styled.div`
+  box-sizing: content-box;
+  width: 200px;
+  height: 60px;
+  position: relative;
+  user-select: none;
+  border: 1px solid black;
+  overflow: hidden;
+  border-radius: 4px;
+  :hover {
+    cursor: pointer;
+  }
+`
+
+const Fill = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #0000ff57;
+`
+
+const Text = styled.p`
+  text-align: center;
+  position: absolute;
+  width: 100%;
+  z-index: 20;
+`
 
 // ----------------------
 // state model
@@ -11,13 +48,13 @@ import { useAnimation } from '../../lib/sideEffect/useAnimation'
 
 interface State {
   target: number
-  onRest: boolean
+  nextTarget: number
   animatedNumber: AnimatedNumber
 }
 
 const initState: State = {
-  target: 10,
-  onRest: false,
+  target: 0,
+  nextTarget: 200,
   animatedNumber: {
     current: 0,
     velocity: 0,
@@ -34,11 +71,11 @@ const Tick = (tick: number) => ({
   payload: tick,
 })
 
-const Flip = () => ({
-  type: 'FLIP' as const,
+const SetTarget = (target: number) => ({
+  type: 'SET_TARGET' as const,
+  payload: target,
 })
-
-type Action = ReturnType<typeof Tick> | ReturnType<typeof Flip>
+type Action = ReturnType<typeof Tick> | ReturnType<typeof SetTarget>
 
 // ----------------------
 // update
@@ -52,20 +89,16 @@ const reducer = (state: State, action: Action): State => {
 
       return {
         ...state,
-        onRest: isOnRest(state.target)(newAnimatedNumber),
         animatedNumber: newAnimatedNumber,
       }
-    case 'FLIP':
+    case 'SET_TARGET':
       return {
         ...state,
-        target: state.target === 10 ? 0 : 10,
+        target: action.payload,
       }
   }
 }
 
-// ----------------------
-// draw
-// ----------------------
 const Page: React.FC = () => {
   const [state, dispatch] = React.useReducer(reducer, initState)
 
@@ -73,18 +106,17 @@ const Page: React.FC = () => {
     dispatch(Tick(t))
   }, [])
 
-  React.useEffect(() => {
-    if (state.onRest) {
-      setTimeout(() => {
-        dispatch(Flip())
-      }, 2000)
-    }
-  }, [state.onRest])
-
   return (
-    <>
-      <p>Number: {state.animatedNumber.current.toFixed(2)}</p>
-    </>
+    <Container>
+      <Box
+        onClick={() => {
+          dispatch(SetTarget(state.target === 200 ? 0 : 200))
+        }}
+      >
+        <Fill style={{ width: state.animatedNumber.current }} />
+        <Text>{state.animatedNumber.current.toFixed(0)}</Text>
+      </Box>
+    </Container>
   )
 }
 

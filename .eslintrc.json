@@ -8,8 +8,6 @@
   ],
   "rules": {
     "@typescript-eslint/ban-ts-comment": "warn",
-    "@typescript-eslint/no-empty-interface": "warn",
-    "prefer-const": "warn",
-    "@typescript-eslint/no-empty-function": "warn"
+    "@typescript-eslint/no-empty-interface": "warn"
   }
 }
