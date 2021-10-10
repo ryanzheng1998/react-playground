@@ -17,12 +17,18 @@ const Text = styled.h1`
 `
 
 const Page: React.FC = () => {
-  const animatedOpacity = useAnimatedNumber({
-    default: 0,
-    spring: spring(200),
-  })
+  const [target, setTarget] = React.useState(1)
 
-  console.log(animatedOpacity.current)
+  const animatedOpacity = useAnimatedNumber(
+    {
+      default: 0,
+      spring: spring(target),
+      onRest: () => {
+        setTarget(target === 0 ? 1 : 0)
+      },
+    },
+    [target]
+  )
 
   return (
     <Container>
