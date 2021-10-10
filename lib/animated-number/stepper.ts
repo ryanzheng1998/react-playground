@@ -9,7 +9,7 @@ export const stepper =
     const frameToCatchUp = Math.floor((timeStamp - lastUpdate) / msPerFrame)
 
     const currentFrameCompletion =
-      timeStamp - lastUpdate - msPerFrame * frameToCatchUp
+      (timeStamp - lastUpdate - msPerFrame * frameToCatchUp) / msPerFrame
 
     // a little bit of impurity
     let newLastIdealStyleValue = animatedNumber.current
