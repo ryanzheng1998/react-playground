@@ -1,3 +1,4 @@
+// from https://github.com/chenglou/react-motion/blob/master/src/stepper.js
 import presents from './presents'
 import { SpringHelperConfig, OpaqueConfig } from './types'
 

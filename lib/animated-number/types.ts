@@ -2,7 +2,7 @@ export interface AnimatedNumber {
   current: number
   velocity: number
   lastIdealValue: number
-  lastIdndealVelocity: number
+  lastIdealVelocity: number
 }
 
 export interface Spring {

@@ -9,7 +9,6 @@ const Container = styled.div`
   display: grid;
   justify-content: center;
   align-items: center;
-
   height: 80vh;
   width: 100%;
 `
@@ -47,19 +46,21 @@ const Text = styled.p`
 // ----------------------
 
 interface State {
+  timeStamp: number
+  lastUpdate: number
   target: number
-  nextTarget: number
   animatedNumber: AnimatedNumber
 }
 
 const initState: State = {
+  timeStamp: 0,
+  lastUpdate: 0,
   target: 0,
-  nextTarget: 200,
   animatedNumber: {
     current: 0,
     velocity: 0,
     lastIdealValue: 0,
-    lastIdndealVelocity: 0,
+    lastIdealVelocity: 0,
   },
 }
 
@@ -83,12 +84,14 @@ type Action = ReturnType<typeof Tick> | ReturnType<typeof SetTarget>
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'TICK':
-      const newAnimatedNumber = stepper(8 / 1000)(spring(state.target))(
-        state.animatedNumber
-      )
+      const newAnimatedNumber = stepper(state.timeStamp)(state.lastUpdate)(8)(
+        spring(state.target)
+      )(state.animatedNumber)
 
       return {
         ...state,
+        timeStamp: action.payload,
+        lastUpdate: state.timeStamp,
         animatedNumber: newAnimatedNumber,
       }
     case 'SET_TARGET':

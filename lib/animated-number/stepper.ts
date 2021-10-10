@@ -1,23 +1,56 @@
 import { AnimatedNumber, Spring } from './types'
 
 export const stepper =
-  (secondPerFrame: number) =>
+  (timeStamp: number) =>
+  (lastUpdate: number) =>
+  (msPerFrame: number) =>
   (spring: Spring) =>
   (animatedNumber: AnimatedNumber): AnimatedNumber => {
-    const [newLastIdealStyleValue, newLastIdealVelocityValue] = subStepper(
-      secondPerFrame,
-      animatedNumber.current,
-      animatedNumber.velocity,
+    const frameToCatchUp = Math.floor((timeStamp - lastUpdate) / msPerFrame)
+
+    const currentFrameCompletion =
+      timeStamp - lastUpdate - msPerFrame * frameToCatchUp
+
+    // a little bit of impurity
+    let newLastIdealStyleValue = animatedNumber.current
+    let newLastIdealVelocityValue = animatedNumber.velocity
+
+    for (let i = 0; i < frameToCatchUp; i++) {
+      ;[newLastIdealStyleValue, newLastIdealVelocityValue] = subStepper(
+        msPerFrame / 1000,
+        newLastIdealStyleValue,
+        newLastIdealVelocityValue,
+        spring.val,
+        spring.stiffness,
+        spring.damping,
+        spring.precision
+      )
+    }
+
+    const [nextIdealX, nextIdealV] = subStepper(
+      msPerFrame / 1000,
+      newLastIdealStyleValue,
+      newLastIdealVelocityValue,
       spring.val,
       spring.stiffness,
       spring.damping,
       spring.precision
     )
 
+    const newCurrentStyle =
+      newLastIdealStyleValue +
+      (nextIdealX - newLastIdealStyleValue) * currentFrameCompletion
+
+    const newCurrentVelocity =
+      newLastIdealVelocityValue +
+      (nextIdealV - newLastIdealVelocityValue) * currentFrameCompletion
+
     return {
       ...animatedNumber,
-      current: newLastIdealStyleValue,
-      velocity: newLastIdealVelocityValue,
+      current: newCurrentStyle,
+      velocity: newCurrentVelocity,
+      lastIdealValue: newLastIdealStyleValue,
+      lastIdealVelocity: newLastIdealVelocityValue,
     }
   }
 
