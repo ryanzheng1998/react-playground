@@ -43,7 +43,15 @@ const SetTarget = (target: number) => ({
   payload: target,
 })
 
-type Action = ReturnType<typeof Tick> | ReturnType<typeof SetTarget>
+const Filp = ([from, to]: [number, number]) => ({
+  type: 'FLIP' as const,
+  payload: [from, to],
+})
+
+type Action =
+  | ReturnType<typeof Tick>
+  | ReturnType<typeof SetTarget>
+  | ReturnType<typeof Filp>
 
 // ----------------------
 // update
@@ -67,6 +75,16 @@ const reducer = (state: State, action: Action): State => {
         timeStamp: performance.now(),
         lastUpdate: performance.now(),
         target: action.payload,
+      }
+    case 'FLIP':
+      return {
+        ...state,
+        timeStamp: performance.now(),
+        lastUpdate: performance.now(),
+        target:
+          state.target === action.payload[0]
+            ? action.payload[1]
+            : action.payload[0],
       }
   }
 }
@@ -101,7 +119,7 @@ const Page: React.FC = () => {
   React.useEffect(() => {
     if (onRest === true) {
       setTimeout(() => {
-        dispatch(SetTarget(state.target === 10 ? 0 : 10))
+        dispatch(Filp([0, 10]))
       }, 2000)
     }
   }, [onRest])

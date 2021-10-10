@@ -30,12 +30,26 @@ const Tick = (tick: number) => ({
   payload: tick,
 })
 
+const SetTarget = (target: number) => ({
+  type: 'SET_TARGET' as const,
+  payload: target,
+})
+
 const SetSpring = (spring: Spring) => ({
   type: 'SET_SPRING' as const,
   payload: spring,
 })
 
-type Action = ReturnType<typeof Tick> | ReturnType<typeof SetSpring>
+const Filp = ([from, to]: [number, number]) => ({
+  type: 'FLIP' as const,
+  payload: [from, to],
+})
+
+type Action =
+  | ReturnType<typeof Tick>
+  | ReturnType<typeof SetTarget>
+  | ReturnType<typeof SetSpring>
+  | ReturnType<typeof Filp>
 
 // ----------------------
 // update
@@ -53,6 +67,16 @@ const reducer = (state: State, action: Action): State => {
         lastUpdate: state.timeStamp,
         animatedNumber: newAnimatedNumber,
       }
+    case 'SET_TARGET':
+      return {
+        ...state,
+        timeStamp: performance.now(),
+        lastUpdate: performance.now(),
+        spring: {
+          ...state.spring,
+          val: action.payload,
+        },
+      }
     case 'SET_SPRING':
       return {
         ...state,
@@ -60,25 +84,31 @@ const reducer = (state: State, action: Action): State => {
         lastUpdate: performance.now(),
         spring: action.payload,
       }
+    case 'FLIP':
+      return {
+        ...state,
+        timeStamp: performance.now(),
+        lastUpdate: performance.now(),
+        spring: {
+          ...state.spring,
+          val:
+            state.spring.val === action.payload[0]
+              ? action.payload[1]
+              : action.payload[0],
+        },
+      }
   }
 }
 
 export const useAnimatedNumber = (
-  animatedNumberConfig: AnimatedNumberConfig,
-  dep: React.DependencyList
+  animatedNumberConfg: AnimatedNumberConfig
 ): AnimatedNumber => {
-  const config = React.useMemo(() => animatedNumberConfig, dep)
-
-  React.useEffect(() => {
-    dispatch(SetSpring(config.spring))
-  }, [config])
-
   const initState: State = {
     timeStamp: 0,
     lastUpdate: 0,
-    spring: config.spring,
+    spring: animatedNumberConfg.spring,
     animatedNumber: {
-      current: config.default,
+      current: animatedNumberConfg.default,
       velocity: 0,
       lastIdealValue: 0,
       lastIdealVelocity: 0,
@@ -87,11 +117,11 @@ export const useAnimatedNumber = (
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  const onRest = isOnRest(config.spring.val)(state.animatedNumber)
+  const onRest = isOnRest(animatedNumberConfg.spring.val)(state.animatedNumber)
 
   const animationRef = React.useRef(0)
 
-  const tempOnRest = config.onRest
+  const tempOnRest = animatedNumberConfg.onRest
 
   const step = React.useCallback(
     (t1: number) => (t2: number) => {
@@ -115,6 +145,14 @@ export const useAnimatedNumber = (
     animationRef.current = requestAnimationFrame(step(0))
     return () => cancelAnimationFrame(animationRef.current)
   }, [step])
+
+  React.useEffect(() => {
+    if (onRest === true) {
+      setTimeout(() => {
+        dispatch(Filp([0, 10]))
+      }, 2000)
+    }
+  }, [onRest])
 
   return state.animatedNumber
 }

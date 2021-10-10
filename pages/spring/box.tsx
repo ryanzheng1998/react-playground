@@ -1,9 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
+import { isOnRest } from '../../lib/animated-number/isOnRest'
 import { spring } from '../../lib/animated-number/spring'
 import { stepper } from '../../lib/animated-number/stepper'
 import { AnimatedNumber } from '../../lib/animated-number/types'
-import { useAnimation } from '../../lib/sideEffect/useAnimation'
 
 const Container = styled.div`
   display: grid;
@@ -97,6 +97,8 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_TARGET':
       return {
         ...state,
+        timeStamp: performance.now(),
+        lastUpdate: performance.now(),
         target: action.payload,
       }
   }
@@ -105,9 +107,27 @@ const reducer = (state: State, action: Action): State => {
 const Page: React.FC = () => {
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  useAnimation((t: number) => {
-    dispatch(Tick(t))
-  }, [])
+  const animationRef = React.useRef(0)
+
+  const step = React.useCallback(
+    (t1: number) => (t2: number) => {
+      if (t2 - t1 > 8) {
+        if (isOnRest(state.target)(state.animatedNumber)) {
+          return
+        }
+        dispatch(Tick(t2))
+        animationRef.current = requestAnimationFrame(step(t2))
+      } else {
+        animationRef.current = requestAnimationFrame(step(t1))
+      }
+    },
+    [state.animatedNumber, state.target]
+  )
+
+  React.useEffect(() => {
+    animationRef.current = requestAnimationFrame(step(0))
+    return () => cancelAnimationFrame(animationRef.current)
+  }, [step])
 
   return (
     <Container>

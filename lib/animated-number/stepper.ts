@@ -15,16 +15,19 @@ export const stepper =
     let newLastIdealStyleValue = animatedNumber.lastIdealValue
     let newLastIdealVelocityValue = animatedNumber.lastIdealVelocity
 
-    for (let i = 0; i < frameToCatchUp; i++) {
-      ;[newLastIdealStyleValue, newLastIdealVelocityValue] = subStepper(
-        msPerFrame / 1000,
-        newLastIdealStyleValue,
-        newLastIdealVelocityValue,
-        spring.val,
-        spring.stiffness,
-        spring.damping,
-        spring.precision
-      )
+    // prevent catch up too many frame
+    if (frameToCatchUp <= 10) {
+      for (let i = 0; i < frameToCatchUp; i++) {
+        ;[newLastIdealStyleValue, newLastIdealVelocityValue] = subStepper(
+          msPerFrame / 1000,
+          newLastIdealStyleValue,
+          newLastIdealVelocityValue,
+          spring.val,
+          spring.stiffness,
+          spring.damping,
+          spring.precision
+        )
+      }
     }
 
     const [nextIdealX, nextIdealV] = subStepper(
