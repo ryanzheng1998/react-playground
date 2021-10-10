@@ -12,8 +12,8 @@ export const stepper =
       (timeStamp - lastUpdate - msPerFrame * frameToCatchUp) / msPerFrame
 
     // a little bit of impurity
-    let newLastIdealStyleValue = animatedNumber.current
-    let newLastIdealVelocityValue = animatedNumber.velocity
+    let newLastIdealStyleValue = animatedNumber.lastIdealValue
+    let newLastIdealVelocityValue = animatedNumber.lastIdealVelocity
 
     for (let i = 0; i < frameToCatchUp; i++) {
       ;[newLastIdealStyleValue, newLastIdealVelocityValue] = subStepper(
