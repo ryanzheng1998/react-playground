@@ -9,8 +9,8 @@ const Page: React.FC = () => {
 
   const animatedNumber = useAnimatedNumber(
     {
-      default: 0,
-      spring: spring(target),
+      defaultStyle: 0,
+      style: spring(target),
       onRest: () => {
         setTimeout(() => {
           setTarget(target === max ? 0 : max)

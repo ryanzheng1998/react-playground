@@ -5,8 +5,8 @@ import { AnimatedNumber, Spring } from '../animated-number/types'
 
 export interface AnimatedNumberConfig {
   onRest?: () => void
-  default: number
-  spring: Spring
+  defaultStyle: number
+  style: Spring
 }
 
 const msPerFrame = 8 // 120 fpc
@@ -70,15 +70,15 @@ export const useAnimatedNumber = (
   const config = React.useMemo(() => animatedNumberConfig, dep)
 
   React.useEffect(() => {
-    dispatch(SetSpring(config.spring))
+    dispatch(SetSpring(config.style))
   }, [config])
 
   const initState: State = {
     timeStamp: 0,
     lastUpdate: 0,
-    spring: config.spring,
+    spring: config.style,
     animatedNumber: {
-      current: config.default,
+      current: config.defaultStyle,
       velocity: 0,
       lastIdealValue: 0,
       lastIdealVelocity: 0,
@@ -87,7 +87,7 @@ export const useAnimatedNumber = (
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  const onRest = isOnRest(config.spring.val)(state.animatedNumber)
+  const onRest = isOnRest(config.style.val)(state.animatedNumber)
 
   const animationRef = React.useRef(0)
 

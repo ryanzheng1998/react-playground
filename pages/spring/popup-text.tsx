@@ -21,8 +21,8 @@ const Page: React.FC = () => {
 
   const animatedOpacity = useAnimatedNumber(
     {
-      default: 0,
-      spring: spring(target),
+      defaultStyle: 0,
+      style: spring(target),
       onRest: () => {
         setTarget(target === 0 ? 1 : 0)
       },
