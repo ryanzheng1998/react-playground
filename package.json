@@ -1,6 +1,6 @@
 {
-  "name": "hackathon-scoreboard",
-  "version": "0.2.0",
+  "name": "react-playground",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
