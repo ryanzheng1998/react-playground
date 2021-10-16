@@ -5,7 +5,7 @@ import { spring } from '../../lib/animated-number/spring'
 import { stepper } from '../../lib/animated-number/stepper'
 import { AnimatedNumber } from '../../lib/animated-number/types'
 
-const msPerFrame = 8 // 120 fpc
+const msPerFrame = 8 // 120 fps
 
 // ----------------------
 // state model

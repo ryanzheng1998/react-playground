@@ -6,7 +6,7 @@ import { AnimatedNumber, Spring } from '../animated-number/types'
 export interface AnimatedNumberConfig {
   onRest?: () => void
   defaultStyle: number
-  style: Spring
+  style: Spring | number
 }
 
 const msPerFrame = 8 // 120 fpc
@@ -18,7 +18,8 @@ const msPerFrame = 8 // 120 fpc
 interface State {
   timeStamp: number
   lastUpdate: number
-  spring: Spring
+  onRest: boolean
+  style: Spring | number
   animatedNumber: AnimatedNumber
 }
 
@@ -30,12 +31,12 @@ const Tick = (tick: number) => ({
   payload: tick,
 })
 
-const SetSpring = (spring: Spring) => ({
-  type: 'SET_SPRING' as const,
-  payload: spring,
+const SetStyle = (style: Spring | number) => ({
+  type: 'SET_STYLE' as const,
+  payload: style,
 })
 
-type Action = ReturnType<typeof Tick> | ReturnType<typeof SetSpring>
+type Action = ReturnType<typeof Tick> | ReturnType<typeof SetStyle>
 
 // ----------------------
 // update
@@ -43,22 +44,48 @@ type Action = ReturnType<typeof Tick> | ReturnType<typeof SetSpring>
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'TICK':
+      if (typeof state.style === 'number') {
+        return {
+          ...state,
+          timeStamp: action.payload,
+          lastUpdate: state.timeStamp,
+          onRest: true,
+          animatedNumber: {
+            current: state.style,
+            velocity: 0,
+            lastIdealValue: state.style,
+            lastIdealVelocity: 0,
+          },
+        }
+      }
+
       const newAnimatedNumber = stepper(state.timeStamp)(state.lastUpdate)(
         msPerFrame
-      )(state.spring)(state.animatedNumber)
+      )(state.style)(state.animatedNumber)
 
       return {
         ...state,
         timeStamp: action.payload,
         lastUpdate: state.timeStamp,
         animatedNumber: newAnimatedNumber,
+        onRest: isOnRest(state.style.val)(state.animatedNumber),
       }
-    case 'SET_SPRING':
+    case 'SET_STYLE':
       return {
         ...state,
         timeStamp: performance.now(),
         lastUpdate: performance.now(),
-        spring: action.payload,
+        style: action.payload,
+        animatedNumber:
+          typeof action.payload !== 'number'
+            ? state.animatedNumber
+            : {
+                current: action.payload,
+                velocity: 0,
+                lastIdealValue: action.payload,
+                lastIdealVelocity: 0,
+              },
+        onRest: typeof action.payload === 'number',
       }
   }
 }
@@ -70,13 +97,14 @@ export const useAnimatedNumber = (
   const config = React.useMemo(() => animatedNumberConfig, dep)
 
   React.useEffect(() => {
-    dispatch(SetSpring(config.style))
+    dispatch(SetStyle(config.style))
   }, [config])
 
   const initState: State = {
     timeStamp: 0,
     lastUpdate: 0,
-    spring: config.style,
+    onRest: false,
+    style: animatedNumberConfig.style,
     animatedNumber: {
       current: config.defaultStyle,
       velocity: 0,
@@ -87,18 +115,16 @@ export const useAnimatedNumber = (
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  const onRest = isOnRest(config.style.val)(state.animatedNumber)
-
   const animationRef = React.useRef(0)
 
-  const tempOnRest = config.onRest
+  const tempOnRestFunction = animatedNumberConfig.onRest
 
   const step = React.useCallback(
     (t1: number) => (t2: number) => {
       if (t2 - t1 > msPerFrame) {
-        if (onRest) {
-          if (tempOnRest) {
-            tempOnRest()
+        if (state.onRest) {
+          if (tempOnRestFunction) {
+            tempOnRestFunction()
           }
           return
         }
@@ -108,7 +134,7 @@ export const useAnimatedNumber = (
         animationRef.current = requestAnimationFrame(step(t1))
       }
     },
-    [onRest, tempOnRest]
+    [tempOnRestFunction, state.onRest]
   )
 
   React.useEffect(() => {

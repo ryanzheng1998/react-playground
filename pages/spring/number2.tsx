@@ -1,6 +1,6 @@
 import React from 'react'
 import { spring } from '../../lib/animated-number/spring'
-import { useAnimatedNumber } from '../../lib/sideEffect/useAnimatedNumber'
+import { useAnimatedNumber } from '../../lib/hooks/useAnimatedNumber'
 
 const Page: React.FC = () => {
   const max = 100

@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { spring } from '../../lib/animated-number/spring'
-import { useAnimatedNumber } from '../../lib/sideEffect/useAnimatedNumber'
+import { useAnimatedNumber } from '../../lib/hooks/useAnimatedNumber'
 
 const Container = styled.div`
   display: grid;
