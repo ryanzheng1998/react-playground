@@ -235,7 +235,6 @@ const Draggable: React.FC<Props> = (p) => {
   const animationRef = React.useRef(0)
 
   React.useEffect(() => {
-    // Todo: update on middle click is kind of buggy
     const element = elementRef.current
     if (element) {
       const rect = element.getBoundingClientRect()
