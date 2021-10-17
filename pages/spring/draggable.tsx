@@ -203,8 +203,7 @@ const Page: React.FC = () => {
       <Object
         ref={elementRef}
         style={{
-          top: state.currentPositionY.current,
-          left: state.currentPositionX.current,
+          transform: `translate3d(${state.currentPositionX.current}px, ${state.currentPositionY.current}px, 0px)`,
           cursor: state.drag ? 'grabbing' : 'grab',
         }}
       />
