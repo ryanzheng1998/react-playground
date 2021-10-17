@@ -27,7 +27,24 @@ const Item = styled.div`
   }
 `
 
-const content = ['Item1', 'Item2', 'Item3', 'Item4']
+const content = [
+  {
+    name: 'Item1',
+    color: 'green',
+  },
+  {
+    name: 'Item2',
+    color: 'red',
+  },
+  {
+    name: 'Item3',
+    color: 'blue',
+  },
+  {
+    name: 'Item4',
+    color: 'yellow',
+  },
+]
 
 const Page: React.FC = () => {
   const [order, setOrder] = React.useState(
@@ -37,13 +54,13 @@ const Page: React.FC = () => {
   const list = content.map((value, index) => {
     const destination: Vector = {
       x: 0,
-      y: order[index] * 20,
+      y: order[index] * 50,
     }
 
     return (
       <Draggable key={index} destination={destination}>
-        <Item key={index}>
-          <p>{value}</p>
+        <Item key={index} style={{ background: value.color }}>
+          <p>{value.name}</p>
         </Item>
       </Draggable>
     )
