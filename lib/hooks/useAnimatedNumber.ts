@@ -104,11 +104,11 @@ export const useAnimatedNumber = (
     timeStamp: 0,
     lastUpdate: 0,
     onRest: false,
-    style: animatedNumberConfig.style,
+    style: config.style,
     animatedNumber: {
       current: config.defaultStyle,
       velocity: 0,
-      lastIdealValue: 0,
+      lastIdealValue: config.defaultStyle,
       lastIdealVelocity: 0,
     },
   }

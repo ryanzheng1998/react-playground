@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useDebugValue } from 'react'
 import { isOnRest } from '../animated-number/isOnRest'
 import { stepper } from '../animated-number/stepper'
 import { AnimatedNumber, Spring } from '../animated-number/types'
+import { usePrevious } from './usePrevious'
 
 export interface AnimatedNumberConfig {
   onRest?: () => void
@@ -22,7 +23,7 @@ interface State {
     onRest: boolean
     style: Spring | number
     animatedNumber: AnimatedNumber
-  }
+  }[]
 }
 
 // ----------------------
@@ -33,12 +34,12 @@ const Tick = (tick: number) => ({
   payload: tick,
 })
 
-const SetStyle = (style: Spring | number) => ({
-  type: 'SET_STYLE' as const,
-  payload: style,
+const SetConfig = (config: AnimatedNumberConfig[]) => ({
+  type: 'SET_CONFIG' as const,
+  payload: config,
 })
 
-type Action = ReturnType<typeof Tick> | ReturnType<typeof SetStyle>
+type Action = ReturnType<typeof Tick> | ReturnType<typeof SetConfig>
 
 // ----------------------
 // update
@@ -46,97 +47,110 @@ type Action = ReturnType<typeof Tick> | ReturnType<typeof SetStyle>
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'TICK':
-      if (typeof state.style === 'number') {
-        return {
-          ...state,
-          timeStamp: action.payload,
-          lastUpdate: state.timeStamp,
-          onRest: true,
-          animatedNumber: {
-            current: state.style,
-            velocity: 0,
-            lastIdealValue: state.style,
-            lastIdealVelocity: 0,
-          },
-        }
-      }
-
-      const newAnimatedNumber = stepper(state.timeStamp)(state.lastUpdate)(
-        msPerFrame
-      )(state.style)(state.animatedNumber)
-
       return {
         ...state,
         timeStamp: action.payload,
         lastUpdate: state.timeStamp,
-        animatedNumber: newAnimatedNumber,
-        onRest: isOnRest(state.style.val)(state.animatedNumber),
+        list: state.list.map((x) => {
+          if (typeof x.style === 'number') {
+            return {
+              ...x,
+              onRest: true,
+              animatedNumber: {
+                current: x.style,
+                velocity: 0,
+                lastIdealValue: x.style,
+                lastIdealVelocity: 0,
+              },
+            }
+          }
+
+          const newAnimatedNumber = stepper(state.timeStamp)(state.lastUpdate)(
+            msPerFrame
+          )(x.style)(x.animatedNumber)
+
+          return {
+            ...x,
+            onRest: isOnRest(x.style.val)(x.animatedNumber),
+            animatedNumber: newAnimatedNumber,
+          }
+        }),
       }
-    case 'SET_STYLE':
+
+    case 'SET_CONFIG':
       return {
         ...state,
         timeStamp: performance.now(),
         lastUpdate: performance.now(),
-        style: action.payload,
-        animatedNumber:
-          typeof action.payload !== 'number'
-            ? state.animatedNumber
-            : {
-                current: action.payload,
-                velocity: 0,
-                lastIdealValue: action.payload,
-                lastIdealVelocity: 0,
-              },
-        onRest: typeof action.payload === 'number',
+        list: action.payload.map((x, i) => {
+          if (state.list[i]) {
+            return {
+              ...state.list[i],
+              style: x.style,
+              onRest: typeof x.style === 'number',
+            }
+          }
+          return {
+            onRest: false,
+            style: x.style,
+            animatedNumber: {
+              current: x.defaultStyle,
+              velocity: 0,
+              lastIdealValue: x.defaultStyle,
+              lastIdealVelocity: 0,
+            },
+          }
+        }),
       }
   }
 }
 
-export const useAnimatedNumber = (
-  animatedNumberConfig: AnimatedNumberConfig[],
+export const useAnimatedNumbers = (
+  animatedNumberConfigs: AnimatedNumberConfig[],
   dep: React.DependencyList
 ): AnimatedNumber[] => {
-  const config = React.useMemo(() => animatedNumberConfig, dep)
+  const config = React.useMemo(() => animatedNumberConfigs, dep)
 
   React.useEffect(() => {
-    dispatch(SetStyle(config.style))
+    dispatch(SetConfig(config))
+    dispatch(Tick(performance.now()))
   }, [config])
 
   const initState: State = {
     timeStamp: 0,
     lastUpdate: 0,
-    onRest: false,
-    style: animatedNumberConfig.style,
-    animatedNumber: {
-      current: config.defaultStyle,
-      velocity: 0,
-      lastIdealValue: 0,
-      lastIdealVelocity: 0,
-    },
+    list: config.map((x) => ({
+      onRest: false,
+      style: x.style,
+      animatedNumber: {
+        current: x.defaultStyle,
+        velocity: 0,
+        lastIdealValue: x.defaultStyle,
+        lastIdealVelocity: 0,
+      },
+    })),
   }
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
   const animationRef = React.useRef(0)
 
-  const tempOnRestFunction = animatedNumberConfig.onRest
+  const everyThingOnRest = state.list.every((x) => x.onRest)
 
   const step = React.useCallback(
     (t1: number) => (t2: number) => {
       if (t2 - t1 > msPerFrame) {
-        if (state.onRest) {
-          if (tempOnRestFunction) {
-            tempOnRestFunction()
-          }
+        if (everyThingOnRest) {
           return
         }
+
         dispatch(Tick(t2))
         animationRef.current = requestAnimationFrame(step(t2))
       } else {
         animationRef.current = requestAnimationFrame(step(t1))
       }
     },
-    [tempOnRestFunction, state.onRest]
+    [everyThingOnRest]
   )
 
   React.useEffect(() => {
@@ -144,5 +158,17 @@ export const useAnimatedNumber = (
     return () => cancelAnimationFrame(animationRef.current)
   }, [step])
 
-  return state.animatedNumber
+  const onRestList = state.list.map((x) => x.onRest)
+
+  const previousOnRestList = usePrevious(onRestList)
+
+  React.useEffect(() => {
+    onRestList.map((x, i) => {
+      if (previousOnRestList !== undefined && !previousOnRestList[i] && x) {
+        config[i].onRest?.()
+      }
+    })
+  }, [onRestList, config, previousOnRestList])
+
+  return state.list.map((x) => x.animatedNumber)
 }
