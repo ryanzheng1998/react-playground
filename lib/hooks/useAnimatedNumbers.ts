@@ -1,34 +1,28 @@
-import React, { useDebugValue } from 'react'
+import React from 'react'
 import { isOnRest } from '../animated-number/isOnRest'
 import { stepper } from '../animated-number/stepper'
 import { AnimatedNumber, Spring } from '../animated-number/types'
+import { AnimatedNumberConfig } from './useAnimatedNumber'
 import { usePrevious } from './usePrevious'
 
-export interface AnimatedNumberConfig {
-  onRest?: () => void
-  defaultStyle: number
-  style: Spring | number
-}
-
-const msPerFrame = 8 // 120 fpc
+const msPerFrame = 8 // 120 fps
 
 // ----------------------
 // state model
 // ----------------------
 
 interface State {
-  timeStamp: number
-  lastUpdate: number
+  timeStamp: number // in millisecond
   list: {
-    onRest: boolean
     style: Spring | number
     animatedNumber: AnimatedNumber
+    onRest: boolean // computed value, store here for the sake of convenience and readablily
   }[]
 }
 
 // ----------------------
 // action model
-// ----------------------
+// ---------------------
 const Tick = (tick: number) => ({
   type: 'TICK' as const,
   payload: tick,
@@ -50,7 +44,6 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         timeStamp: action.payload,
-        lastUpdate: state.timeStamp,
         list: state.list.map((x) => {
           if (typeof x.style === 'number') {
             return {
@@ -65,33 +58,37 @@ const reducer = (state: State, action: Action): State => {
             }
           }
 
-          const newAnimatedNumber = stepper(state.timeStamp)(state.lastUpdate)(
+          const newAnimatedNumber = stepper(action.payload)(state.timeStamp)(
             msPerFrame
           )(x.style)(x.animatedNumber)
 
           return {
             ...x,
-            onRest: isOnRest(x.style.val)(x.animatedNumber),
+            onRest: isOnRest(x.style.val)(newAnimatedNumber),
             animatedNumber: newAnimatedNumber,
           }
         }),
       }
-
     case 'SET_CONFIG':
       return {
         ...state,
         timeStamp: performance.now(),
-        lastUpdate: performance.now(),
         list: action.payload.map((x, i) => {
           if (state.list[i]) {
             return {
               ...state.list[i],
               style: x.style,
-              onRest: typeof x.style === 'number',
+              onRest: (() => {
+                if (typeof x.style === 'number') return true
+                return isOnRest(x.style.val)(state.list[i].animatedNumber)
+              })(),
             }
           }
           return {
-            onRest: false,
+            onRest: (() => {
+              if (typeof x.style === 'number') return true
+              return x.style.val === x.defaultStyle
+            })(),
             style: x.style,
             animatedNumber: {
               current: x.defaultStyle,
@@ -109,18 +106,20 @@ export const useAnimatedNumbers = (
   animatedNumberConfigs: AnimatedNumberConfig[],
   dep: React.DependencyList
 ): AnimatedNumber[] => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const config = React.useMemo(() => animatedNumberConfigs, dep)
 
   React.useEffect(() => {
     dispatch(SetConfig(config))
-    dispatch(Tick(performance.now()))
   }, [config])
 
   const initState: State = {
     timeStamp: 0,
-    lastUpdate: 0,
     list: config.map((x) => ({
-      onRest: false,
+      onRest: (() => {
+        if (typeof x.style === 'number') return true
+        return x.style.val === x.defaultStyle
+      })(),
       style: x.style,
       animatedNumber: {
         current: x.defaultStyle,
@@ -133,7 +132,7 @@ export const useAnimatedNumbers = (
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  const animationRef = React.useRef(0)
+  const animatedRef = React.useRef(0)
 
   const everyThingOnRest = state.list.every((x) => x.onRest)
 
@@ -143,28 +142,30 @@ export const useAnimatedNumbers = (
         if (everyThingOnRest) {
           return
         }
-
         dispatch(Tick(t2))
-        animationRef.current = requestAnimationFrame(step(t2))
+        animatedRef.current = requestAnimationFrame(step(t2))
       } else {
-        animationRef.current = requestAnimationFrame(step(t1))
+        animatedRef.current = requestAnimationFrame(step(t1))
       }
     },
     [everyThingOnRest]
   )
 
   React.useEffect(() => {
-    animationRef.current = requestAnimationFrame(step(0))
-    return () => cancelAnimationFrame(animationRef.current)
+    animatedRef.current = requestAnimationFrame(step(performance.now()))
+    return () => cancelAnimationFrame(animatedRef.current)
   }, [step])
 
   const onRestList = state.list.map((x) => x.onRest)
-
   const previousOnRestList = usePrevious(onRestList)
 
   React.useEffect(() => {
     onRestList.map((x, i) => {
-      if (previousOnRestList !== undefined && !previousOnRestList[i] && x) {
+      if (
+        x &&
+        previousOnRestList?.[i] !== undefined &&
+        !previousOnRestList[i]
+      ) {
         config[i].onRest?.()
       }
     })

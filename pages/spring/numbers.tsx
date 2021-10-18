@@ -16,7 +16,7 @@ const Page: React.FC = () => {
       style: spring(x),
       onRest: () => {
         setTimeout(() => {
-          // should use function here, otherwise the value will be momolize
+          // should use function here, otherwise the value will be memoizes
           setTarget((x) => update(i)(max)(x))
         }, 1000 * i)
       },
