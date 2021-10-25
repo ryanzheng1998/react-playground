@@ -11,8 +11,8 @@ const Object = styled.div`
 const Page: React.FC = () => {
   const { onDrag, animatedPositionX, animatedPositionY, ref } = useDraggable(
     {
-      x: 200,
-      y: 200,
+      x: 0,
+      y: 0,
     },
     []
   )

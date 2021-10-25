@@ -4,7 +4,7 @@ import { spring } from '../../lib/animated-number/spring'
 import { useAnimatedNumber } from '../../lib/hooks/useAnimatedNumber'
 
 const Page: React.FC = () => {
-  const max = 100
+  const max = 10
 
   const [target, setTarget] = React.useState(1)
 
@@ -27,7 +27,7 @@ const Page: React.FC = () => {
       <Motion defaultStyle={{ x: 0 }} style={{ x: spring(target) }}>
         {(value) => <p>Animated Number: {value.x}</p>}
       </Motion>
-      <p>{animatedNumber.current}</p>
+      <p>Animated Number: {animatedNumber.current}</p>
     </>
   )
 }

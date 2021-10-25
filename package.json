@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/react-motion": "0.0.31",
+    "crypto": "^1.0.1",
     "install": "^0.13.0",
     "jsonwebtoken": "^8.5.1",
     "next": "11.1.0",

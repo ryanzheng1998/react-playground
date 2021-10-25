@@ -2,6 +2,7 @@ import React from 'react'
 import { isOnRest } from '../animated-number/isOnRest'
 import { stepper } from '../animated-number/stepper'
 import { AnimatedNumber, Spring } from '../animated-number/types'
+import { useAnimationFrame } from './useAnimationFrame'
 import { usePrevious } from './usePrevious'
 
 export interface AnimatedNumberConfig {
@@ -109,19 +110,12 @@ export const useAnimatedNumber = (
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  const animationRef = React.useRef(0)
-
-  const step = React.useCallback(
-    (t1: number) => (t2: number) => {
-      if (t2 - t1 > msPerFrame) {
-        if (state.onRest) {
-          return
-        }
-        dispatch(Tick(t2))
-        animationRef.current = requestAnimationFrame(step(t2))
-      } else {
-        animationRef.current = requestAnimationFrame(step(t1))
+  const { setStopAnimationFrame } = useAnimationFrame(
+    (t) => {
+      if (state.onRest) {
+        setStopAnimationFrame(true)
       }
+      dispatch(Tick(t))
     },
     [state.onRest]
   )
@@ -129,11 +123,6 @@ export const useAnimatedNumber = (
   const previousOnRest = usePrevious(state.onRest)
 
   const tempOnRestFunction = config.onRest
-
-  React.useEffect(() => {
-    animationRef.current = requestAnimationFrame(step(performance.now()))
-    return () => cancelAnimationFrame(animationRef.current)
-  }, [step])
 
   React.useEffect(() => {
     if (state.onRest && previousOnRest !== undefined && !previousOnRest) {
