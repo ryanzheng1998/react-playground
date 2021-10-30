@@ -5,9 +5,6 @@ import { useDraggable } from '../lib/hooks/useDraggable'
 const Object = styled.div`
   width: 100px;
   height: 100px;
-  position: fixed;
-  top: 0;
-  left: 0;
   background: green;
   :hover {
     cursor: grab;
@@ -19,6 +16,7 @@ const Page: React.FC = () => {
 
   return (
     <>
+      <h1>dasfsafs</h1>
       <Object
         ref={ref}
         style={{

@@ -4,6 +4,7 @@ import { isOnRest } from '../../lib/animated-number/isOnRest'
 import { spring } from '../../lib/animated-number/spring'
 import { stepper } from '../../lib/animated-number/stepper'
 import { AnimatedNumber } from '../../lib/animated-number/types'
+import { useAnimationFrame } from '../../lib/hooks/useAnimationFrame'
 
 const msPerFrame = 8 // 120 fps
 
@@ -94,39 +95,34 @@ const Page: React.FC = () => {
 
   const onRest = isOnRest(state.target)(state.animatedNumber)
 
-  const animationRef = React.useRef(0)
-
-  const step = React.useCallback(
-    (t1: number) => (t2: number) => {
-      if (t2 - t1 > msPerFrame) {
-        if (onRest) {
-          return
-        }
-        dispatch(Tick(t2))
-        animationRef.current = requestAnimationFrame(step(t2))
-      } else {
-        animationRef.current = requestAnimationFrame(step(t1))
+  const { setStopAnimationFrame } = useAnimationFrame(
+    (t) => {
+      if (onRest) {
+        setStopAnimationFrame(true)
       }
+      dispatch(Tick(t))
     },
     [onRest]
   )
 
   React.useEffect(() => {
-    animationRef.current = requestAnimationFrame(step(0))
-    return () => cancelAnimationFrame(animationRef.current)
-  }, [step])
-
-  React.useEffect(() => {
     if (onRest === true) {
+      console.log(performance.now())
       setTimeout(() => {
-        dispatch(Filp([0, 10]))
+        dispatch(Filp([0, 100]))
       }, 2000)
     }
   }, [onRest])
 
   return (
     <>
-      <Motion defaultStyle={{ x: 0 }} style={{ x: spring(state.target) }}>
+      <Motion
+        defaultStyle={{ x: 0 }}
+        style={{ x: spring(state.target) }}
+        onRest={() => {
+          console.log(performance.now())
+        }}
+      >
         {(value) => <p>Animated Number: {value.x}</p>}
       </Motion>
       <p>Animated Number: {state.animatedNumber.current}</p>

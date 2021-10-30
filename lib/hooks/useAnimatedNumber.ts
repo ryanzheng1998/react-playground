@@ -2,7 +2,6 @@ import React from 'react'
 import { isOnRest } from '../animated-number/isOnRest'
 import { stepper } from '../animated-number/stepper'
 import { AnimatedNumber, Spring } from '../animated-number/types'
-import { useAnimationFrame } from './useAnimationFrame'
 import { usePrevious } from './usePrevious'
 
 export interface AnimatedNumberConfig {
@@ -44,6 +43,7 @@ type Action = ReturnType<typeof Tick> | ReturnType<typeof SetStyle>
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'TICK':
+      // this is imposible to happen, but leave this here just in case
       if (typeof state.style === 'number') {
         return {
           ...state,
@@ -70,14 +70,25 @@ const reducer = (state: State, action: Action): State => {
       }
 
     case 'SET_STYLE':
+      if (typeof action.payload === 'number') {
+        return {
+          ...state,
+          timeStamp: performance.now(),
+          style: action.payload,
+          onRest: true,
+          animatedNumber: {
+            current: action.payload,
+            velocity: 0,
+            lastIdealValue: action.payload,
+            lastIdealVelocity: 0,
+          },
+        }
+      }
       return {
         ...state,
         timeStamp: performance.now(),
         style: action.payload,
-        onRest: (() => {
-          if (typeof action.payload === 'number') return true
-          return isOnRest(action.payload.val)(state.animatedNumber)
-        })(),
+        onRest: isOnRest(action.payload.val)(state.animatedNumber),
       }
   }
 }
@@ -110,15 +121,27 @@ export const useAnimatedNumber = (
 
   const [state, dispatch] = React.useReducer(reducer, initState)
 
-  const { setStopAnimationFrame } = useAnimationFrame(
-    (t) => {
-      if (state.onRest) {
-        setStopAnimationFrame(true)
+  const animationRef = React.useRef(0)
+
+  const step = React.useCallback(
+    (t1: number) => (t2: number) => {
+      if (t2 - t1 > msPerFrame) {
+        if (state.onRest) {
+          return
+        }
+        dispatch(Tick(t2))
+        animationRef.current = requestAnimationFrame(step(t2))
+      } else {
+        animationRef.current = requestAnimationFrame(step(t1))
       }
-      dispatch(Tick(t))
     },
     [state.onRest]
   )
+
+  React.useEffect(() => {
+    animationRef.current = requestAnimationFrame(step(performance.now()))
+    return () => cancelAnimationFrame(animationRef.current)
+  }, [step])
 
   const previousOnRest = usePrevious(state.onRest)
 

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Vector } from '../types'
+import { vectorAdd } from '../vectorAdd'
 import { vectorSubtract } from '../vectorSubtract'
 import { useAnimationFrame } from './useAnimationFrame'
 
@@ -14,20 +15,42 @@ export const useDraggable = (): {
     x: 0,
     y: 0,
   })
-  const [position, setPostiion] = React.useState<Vector>({ x: 110, y: 110 })
+  const [position, setPostiion] = React.useState<Vector>({ x: 0, y: 0 })
   const [{ drag, dragPosition }, setDrag] = React.useState({
     drag: false,
     dragPosition: { x: 0, y: 0 } as Vector,
   })
+  const [
+    originalPositionRelativeToViewPort,
+    setOriginalPositionRelativeToViewPort,
+  ] = React.useState<Vector>({
+    x: 0,
+    y: 0,
+  })
+
+  React.useEffect(() => {
+    const element = ref.current
+    const domRect = element?.getBoundingClientRect()
+
+    setOriginalPositionRelativeToViewPort({
+      x: domRect?.x ?? 0,
+      y: domRect?.y ?? 0,
+    })
+  }, [])
 
   React.useEffect(() => {
     const element = ref.current
 
     const onMouseMove = (e: MouseEvent) => {
       if (drag) {
-        const mousePosition: Vector = { x: e.x, y: e.y }
-        setMousePosition(mousePosition)
-        setPostiion(vectorSubtract(mousePosition)(dragPosition))
+        const mousePagePosition: Vector = { x: e.pageX, y: e.pageY }
+        const mouseViewportPosition: Vector = { x: e.x, y: e.y }
+        const position1 = vectorSubtract(mousePagePosition)(dragPosition)
+        const position2 = vectorSubtract(position1)(
+          originalPositionRelativeToViewPort
+        )
+        setMousePosition(mouseViewportPosition)
+        setPostiion(position2)
       }
     }
 
@@ -38,8 +61,8 @@ export const useDraggable = (): {
         drag: true,
         dragPosition: relativeMousePosition,
       })
-      const mousePosition: Vector = { x: e.x, y: e.y }
-      setMousePosition(mousePosition)
+      const mouseViewportPosition: Vector = { x: e.x, y: e.y }
+      setMousePosition(mouseViewportPosition)
     }
 
     const onMouseUp = () => {
@@ -49,16 +72,37 @@ export const useDraggable = (): {
       })
     }
 
+    const onScroll = () => {
+      if (drag) {
+        const scroll: Vector = {
+          x: window.scrollX,
+          y: window.scrollY,
+        }
+
+        const newPosition = vectorAdd(mousePosition)(scroll)
+
+        const newPosition2 = vectorSubtract(newPosition)(dragPosition)
+
+        const newPosition3 = vectorSubtract(newPosition2)(
+          originalPositionRelativeToViewPort
+        )
+
+        setPostiion(newPosition3)
+      }
+    }
+
     element?.addEventListener('mousedown', onMouseDown)
     window.addEventListener('mouseup', onMouseUp)
     window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('scroll', onScroll)
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove)
       element?.removeEventListener('mousedown', onMouseDown)
       window.removeEventListener('mouseup', onMouseUp)
+      window.removeEventListener('scroll', onScroll)
     }
-  }, [drag, dragPosition])
+  }, [drag, dragPosition, mousePosition, originalPositionRelativeToViewPort])
 
   // auto scrolling but does not consider about skip frame
   const { setStopAnimationFrame } = useAnimationFrame(() => {

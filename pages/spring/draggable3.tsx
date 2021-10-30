@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useDraggable } from '../../lib/hooks/useDraggable'
+import { useDraggableWithDestination } from '../../lib/hooks/useDraggableWithDestination'
+import { Vector } from '../../lib/types'
 
 const Object = styled.div`
   width: 100px;
@@ -9,23 +10,226 @@ const Object = styled.div`
 `
 
 const Page: React.FC = () => {
-  const { onDrag, animatedPositionX, animatedPositionY, ref } = useDraggable(
-    {
-      x: 0,
-      y: 0,
-    },
-    []
-  )
+  const [destination, setDestination] = React.useState<Vector>({ x: 0, y: 0 })
+
+  const { drag, position, ref } = useDraggableWithDestination(destination, [
+    destination,
+  ])
 
   return (
     <>
+      <h1>dsafdsfadf</h1>
       <Object
         ref={ref}
         style={{
-          transform: `translate3d(${animatedPositionX.current}px, ${animatedPositionY.current}px, 0px)`,
-          cursor: onDrag ? 'grabbing' : 'grab',
+          transform: `translate3d(${position.x}px, ${position.y}px, 0px)`,
+          cursor: drag ? 'grabbing' : 'grab',
         }}
       />
+      <button
+        onClick={() => setDestination((v) => ({ x: v.x + 50, y: v.y + 50 }))}
+      >
+        dfadsaf
+      </button>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
+      <p>dafdafdsfads</p>
     </>
   )
 }
